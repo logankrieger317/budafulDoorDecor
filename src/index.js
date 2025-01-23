@@ -142,7 +142,7 @@ app.post('/api/email/simple-test', async (req, res) => {
 // Order confirmation email endpoint
 app.post('/api/email/order-confirmation', async (req, res) => {
   try {
-    const { customerEmail, customerName, items, totalAmount, shippingAddress } = req.body;
+    const { customerEmail, customerName, customerPhone, customerNotes, items, totalAmount, shippingAddress } = req.body;
     console.log('Received shipping address:', shippingAddress);
     
     // Format shipping address
@@ -192,6 +192,11 @@ app.post('/api/email/order-confirmation', async (req, res) => {
           <h2 style="color: #666; margin-top: 20px;">Shipping Address</h2>
           <p style="white-space: pre-line;">${formattedAddress}</p>
 
+          ${customerNotes ? `
+          <h2 style="color: #666; margin-top: 20px;">Order Notes</h2>
+          <p>${customerNotes}</p>
+          ` : ''}
+
           <p style="margin-top: 20px;">
             If you have any questions about your order, please don't hesitate to contact us at ${process.env.EMAIL_USER}.
           </p>
@@ -217,7 +222,7 @@ app.post('/api/email/order-confirmation', async (req, res) => {
 // Order notification email endpoint (for admin)
 app.post('/api/email/order-notification', async (req, res) => {
   try {
-    const { customerEmail, customerName, items, totalAmount, shippingAddress } = req.body;
+    const { customerEmail, customerName, customerPhone, customerNotes, items, totalAmount, shippingAddress } = req.body;
     console.log('Received shipping address for notification:', shippingAddress);
     
     // Format shipping address
@@ -244,7 +249,9 @@ app.post('/api/email/order-notification', async (req, res) => {
           <h2 style="color: #666;">Customer Information</h2>
           <p>
             <strong>Name:</strong> ${customerName}<br>
-            <strong>Email:</strong> ${customerEmail}
+            <strong>Email:</strong> ${customerEmail}<br>
+            <strong>Phone:</strong> ${customerPhone || 'Not provided'}<br>
+            ${customerNotes ? `<strong>Notes:</strong> ${customerNotes}<br>` : ''}
           </p>
 
           <h2 style="color: #666;">Order Summary</h2>
