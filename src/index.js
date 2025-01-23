@@ -139,11 +139,84 @@ app.post('/api/email/simple-test', async (req, res) => {
   }
 });
 
+// Order notification email endpoint (for admin)
+app.post('/api/email/order-notification', async (req, res) => {
+  try {
+    const { customerEmail, customerName, customerPhone, customerNotes, items, totalAmount, shippingAddress } = req.body;
+    console.log('Order notification request body:', req.body);
+    
+    // Format shipping address
+    const formattedAddress = `${shippingAddress.street || ''}\n${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}`.trim();
+    
+    // Create itemsList HTML
+    const itemsList = items.map(item => `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.quantity}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">$${item.price.toFixed(2)}</td>
+        <td style="padding: 10px; border-bottom: 1px solid #ddd;">$${(item.price * item.quantity).toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    const emailResult = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER, // Send to admin email
+      subject: 'New Order Received - Budaful Door Designs',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #333; text-align: center;">New Order Received!</h1>
+          
+          <h2 style="color: #666;">Customer Information</h2>
+          <p style="line-height: 1.6;">
+            <strong>Name:</strong> ${customerName}<br>
+            <strong>Email:</strong> ${customerEmail}<br>
+            <strong>Phone:</strong> ${customerPhone || 'Not provided'}<br>
+            ${customerNotes ? `<strong>Notes:</strong> ${customerNotes}` : ''}
+          </p>
+
+          <h2 style="color: #666;">Order Summary</h2>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background-color: #f8f8f8;">
+                <th style="padding: 10px; text-align: left;">Item</th>
+                <th style="padding: 10px; text-align: left;">Quantity</th>
+                <th style="padding: 10px; text-align: left;">Price</th>
+                <th style="padding: 10px; text-align: left;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsList}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Total Amount:</strong></td>
+                <td style="padding: 10px;"><strong>$${totalAmount.toFixed(2)}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <h2 style="color: #666; margin-top: 20px;">Shipping Address</h2>
+          <p style="white-space: pre-line;">${formattedAddress}</p>
+        </div>
+      `
+    });
+
+    console.log('Order notification email sent:', emailResult);
+    res.json({ success: true, messageId: emailResult.messageId });
+  } catch (error) {
+    console.error('Failed to send order notification email:', error);
+    res.status(500).json({ 
+      error: 'Failed to send order notification email',
+      details: error.message
+    });
+  }
+});
+
 // Order confirmation email endpoint
 app.post('/api/email/order-confirmation', async (req, res) => {
   try {
     const { customerEmail, customerName, customerPhone, customerNotes, items, totalAmount, shippingAddress } = req.body;
-    console.log('Received shipping address:', shippingAddress);
+    console.log('Order confirmation request body:', req.body);
     
     // Format shipping address
     const formattedAddress = `${shippingAddress.street || ''}\n${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}`.trim();
@@ -193,7 +266,7 @@ app.post('/api/email/order-confirmation', async (req, res) => {
           <p style="white-space: pre-line;">${formattedAddress}</p>
 
           ${customerNotes ? `
-          <h2 style="color: #666; margin-top: 20px;">Order Notes</h2>
+          <h2 style="color: #666; margin-top: 20px;">Your Notes</h2>
           <p>${customerNotes}</p>
           ` : ''}
 
@@ -214,79 +287,6 @@ app.post('/api/email/order-confirmation', async (req, res) => {
     console.error('Failed to send order confirmation email:', error);
     res.status(500).json({ 
       error: 'Failed to send order confirmation email',
-      details: error.message
-    });
-  }
-});
-
-// Order notification email endpoint (for admin)
-app.post('/api/email/order-notification', async (req, res) => {
-  try {
-    const { customerEmail, customerName, customerPhone, customerNotes, items, totalAmount, shippingAddress } = req.body;
-    console.log('Received shipping address for notification:', shippingAddress);
-    
-    // Format shipping address
-    const formattedAddress = `${shippingAddress.street || ''}\n${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}`.trim();
-    
-    // Create itemsList HTML
-    const itemsList = items.map(item => `
-      <tr>
-        <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.quantity}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #ddd;">$${item.price.toFixed(2)}</td>
-        <td style="padding: 10px; border-bottom: 1px solid #ddd;">$${(item.price * item.quantity).toFixed(2)}</td>
-      </tr>
-    `).join('');
-
-    const emailResult = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER, // Send to admin email
-      subject: 'New Order Received - Budaful Door Designs',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333; text-align: center;">New Order Received!</h1>
-          
-          <h2 style="color: #666;">Customer Information</h2>
-          <p>
-            <strong>Name:</strong> ${customerName}<br>
-            <strong>Email:</strong> ${customerEmail}<br>
-            <strong>Phone:</strong> ${customerPhone || 'Not provided'}<br>
-            ${customerNotes ? `<strong>Notes:</strong> ${customerNotes}<br>` : ''}
-          </p>
-
-          <h2 style="color: #666;">Order Summary</h2>
-          <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-              <tr style="background-color: #f8f8f8;">
-                <th style="padding: 10px; text-align: left;">Item</th>
-                <th style="padding: 10px; text-align: left;">Quantity</th>
-                <th style="padding: 10px; text-align: left;">Price</th>
-                <th style="padding: 10px; text-align: left;">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsList}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="3" style="padding: 10px; text-align: right;"><strong>Total Amount:</strong></td>
-                <td style="padding: 10px;"><strong>$${totalAmount.toFixed(2)}</strong></td>
-              </tr>
-            </tfoot>
-          </table>
-
-          <h2 style="color: #666; margin-top: 20px;">Shipping Address</h2>
-          <p style="white-space: pre-line;">${formattedAddress}</p>
-        </div>
-      `
-    });
-
-    console.log('Order notification email sent:', emailResult);
-    res.json({ success: true, messageId: emailResult.messageId });
-  } catch (error) {
-    console.error('Failed to send order notification email:', error);
-    res.status(500).json({ 
-      error: 'Failed to send order notification email',
       details: error.message
     });
   }
