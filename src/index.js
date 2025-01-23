@@ -143,6 +143,10 @@ app.post('/api/email/simple-test', async (req, res) => {
 app.post('/api/email/order-confirmation', async (req, res) => {
   try {
     const { customerEmail, customerName, items, totalAmount, shippingAddress } = req.body;
+    console.log('Received shipping address:', shippingAddress);
+    
+    // Format shipping address
+    const formattedAddress = `${shippingAddress.street || ''}\n${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}`.trim();
     
     // Create itemsList HTML
     const itemsList = items.map(item => `
@@ -186,10 +190,7 @@ app.post('/api/email/order-confirmation', async (req, res) => {
           </table>
 
           <h2 style="color: #666; margin-top: 20px;">Shipping Address</h2>
-          <p>
-            ${shippingAddress.street}<br>
-            ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zipCode}
-          </p>
+          <p style="white-space: pre-line;">${formattedAddress}</p>
 
           <p style="margin-top: 20px;">
             If you have any questions about your order, please don't hesitate to contact us at ${process.env.EMAIL_USER}.
@@ -217,6 +218,10 @@ app.post('/api/email/order-confirmation', async (req, res) => {
 app.post('/api/email/order-notification', async (req, res) => {
   try {
     const { customerEmail, customerName, items, totalAmount, shippingAddress } = req.body;
+    console.log('Received shipping address for notification:', shippingAddress);
+    
+    // Format shipping address
+    const formattedAddress = `${shippingAddress.street || ''}\n${shippingAddress.city || ''}, ${shippingAddress.state || ''} ${shippingAddress.zipCode || ''}`.trim();
     
     // Create itemsList HTML
     const itemsList = items.map(item => `
@@ -264,10 +269,7 @@ app.post('/api/email/order-notification', async (req, res) => {
           </table>
 
           <h2 style="color: #666; margin-top: 20px;">Shipping Address</h2>
-          <p>
-            ${shippingAddress.street}<br>
-            ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zipCode}
-          </p>
+          <p style="white-space: pre-line;">${formattedAddress}</p>
         </div>
       `
     });
