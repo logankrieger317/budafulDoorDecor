@@ -12,8 +12,9 @@ const app = express();
 
 // Configure CORS to accept requests from your frontend
 const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
-  'https://budafuldoordecor.com',  // Add your production domain
+  'http://localhost:5173',  // Local development
+  'http://localhost:3000',  // Alternative local development
+  'https://budafuldoordecor.com',
   'https://www.budafuldoordecor.com'
 ];
 
@@ -23,12 +24,14 @@ app.use(cors({
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) === -1) {
+      console.log('Blocked origin:', origin);
       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
       return callback(new Error(msg), false);
     }
     return callback(null, true);
   },
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
