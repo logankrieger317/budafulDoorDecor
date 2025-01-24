@@ -1,0 +1,44 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "hEneIKYwKhxSNumfkugLldHHPTIKDRnA",
+    "database": "railway",
+    "host": "monorail.proxy.rlwy.net",
+    "port": 34950,
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
+  },
+  "test": {
+    "username": "postgres",
+    "password": "hEneIKYwKhxSNumfkugLldHHPTIKDRnA",
+    "database": "railway",
+    "host": "monorail.proxy.rlwy.net",
+    "port": 34950,
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
+  },
+  "production": {
+    "username": "postgres",
+    "password": "hEneIKYwKhxSNumfkugLldHHPTIKDRnA",
+    "database": "railway",
+    "host": "monorail.proxy.rlwy.net",
+    "port": 34950,
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
+  }
+}
