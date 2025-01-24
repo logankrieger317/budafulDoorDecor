@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 
-export type MiddlewareFunction = (
+export type RequestHandler = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => Promise<void> | void;
 
-export type ErrorMiddlewareFunction = (
+export type ErrorRequestHandler = (
   error: Error,
   req: Request,
   res: Response,

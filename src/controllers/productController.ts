@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ValidationError } from 'sequelize';
-import db from '../../models';
+import db from '../models';
 import { ProductAttributes, ProductCreationAttributes } from '../types/models';
 import { AppError } from '../types/errors';
 
@@ -45,6 +45,27 @@ class ProductController {
     }
   }
 
+  // Get products by category
+  async getProductsByCategory(req: Request, res: Response): Promise<void> {
+    try {
+      const { category } = req.params;
+      if (!category) {
+        throw new AppError('Category is required', 400);
+      }
+
+      const products = await db.Product.findAll({
+        where: { category }
+      });
+
+      res.json(products);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new AppError(error.message, 500);
+      }
+      throw new AppError('An unknown error occurred', 500);
+    }
+  }
+
   // Create new product
   async createProduct(req: Request, res: Response): Promise<void> {
     try {
@@ -53,7 +74,7 @@ class ProductController {
       res.status(201).json(product);
     } catch (error) {
       if (error instanceof ValidationError) {
-        throw new AppError('Validation error: ' + error.errors.map(e => e.message).join(', '), 400);
+        throw new AppError(error.message, 400);
       }
       if (error instanceof Error) {
         throw new AppError(error.message, 500);
@@ -66,16 +87,13 @@ class ProductController {
   async updateProduct(req: Request, res: Response): Promise<void> {
     try {
       const { sku } = req.params;
-      if (!sku) {
-        throw new AppError('Product SKU is required', 400);
-      }
       const updates: Partial<ProductAttributes> = req.body;
 
       const [updated] = await db.Product.update(updates, {
         where: { sku }
       });
 
-      if (updated === 0) {
+      if (!updated) {
         throw new AppError('Product not found', 404);
       }
 
@@ -86,10 +104,7 @@ class ProductController {
       res.json(updatedProduct);
     } catch (error) {
       if (error instanceof ValidationError) {
-        throw new AppError('Validation error: ' + error.errors.map(e => e.message).join(', '), 400);
-      }
-      if (error instanceof AppError) {
-        throw error;
+        throw new AppError(error.message, 400);
       }
       if (error instanceof Error) {
         throw new AppError(error.message, 500);
@@ -102,9 +117,6 @@ class ProductController {
   async deleteProduct(req: Request, res: Response): Promise<void> {
     try {
       const { sku } = req.params;
-      if (!sku) {
-        throw new AppError('Product SKU is required', 400);
-      }
       const deleted = await db.Product.destroy({
         where: { sku }
       });
@@ -114,28 +126,6 @@ class ProductController {
       }
 
       res.status(204).send();
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw new AppError(error.message, 500);
-      }
-      throw new AppError('An unknown error occurred', 500);
-    }
-  }
-
-  // Get products by category
-  async getProductsByCategory(req: Request, res: Response): Promise<void> {
-    try {
-      const { category } = req.params;
-      if (!category) {
-        throw new AppError('Category is required', 400);
-      }
-      const products = await db.Product.findAll({
-        where: { category }
-      });
-      res.json(products);
     } catch (error) {
       if (error instanceof Error) {
         throw new AppError(error.message, 500);

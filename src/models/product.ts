@@ -1,5 +1,5 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
-import { ProductAttributes, ProductCreationAttributes } from '../src/types/models';
+import { ProductAttributes, ProductCreationAttributes } from '../types/models';
 
 export class Product extends Model<ProductAttributes, ProductCreationAttributes> implements ProductAttributes {
   public sku!: string;
@@ -46,12 +46,12 @@ export function initProduct(sequelize: Sequelize): typeof Product {
         allowNull: false,
       },
       width: {
-        type: DataTypes.DECIMAL(4, 2),
-        allowNull: false,
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: true,
       },
       length: {
-        type: DataTypes.DECIMAL(4, 1),
-        allowNull: false,
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: true,
       },
       isWired: {
         type: DataTypes.BOOLEAN,
@@ -63,24 +63,13 @@ export function initProduct(sequelize: Sequelize): typeof Product {
         allowNull: false,
         defaultValue: 0,
       },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      deletedAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
     },
     {
       sequelize,
       modelName: 'Product',
-      tableName: 'Products',
+      tableName: 'products',
       paranoid: true,
+      timestamps: true,
     }
   );
 

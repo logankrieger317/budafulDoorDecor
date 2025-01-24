@@ -1,10 +1,10 @@
-import express from 'express';
+import express, { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { CloudinaryService } from '../services/cloudinary.service';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-const router = express.Router();
+const router: Router = express.Router();
 const cloudinaryService = new CloudinaryService();
 
 // Configure multer for memory storage
@@ -14,7 +14,7 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB limit
   },
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     // Check file type
     const filetypes = /jpeg|jpg|png|gif/;
     const mimetype = filetypes.test(file.mimetype);
@@ -28,7 +28,7 @@ const upload = multer({
 });
 
 // Upload image route
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', upload.single('image'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -56,7 +56,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 });
 
 // Delete image route
-router.delete('/:publicId', async (req, res) => {
+router.delete('/:publicId', async (req: Request, res: Response) => {
   try {
     const { publicId } = req.params;
     await cloudinaryService.deleteImage(publicId);
@@ -67,4 +67,4 @@ router.delete('/:publicId', async (req, res) => {
   }
 });
 
-export default router;
+export const uploadRoutes = router;

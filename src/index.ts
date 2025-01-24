@@ -1,11 +1,12 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
-import cors from 'cors';
+import express from 'express';
+import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import nodemailer from 'nodemailer';
-import productRoutes from './routes/productRoutes';
+import { productRoutes } from './routes/productRoutes';
 import dbRoutes from './db/routes';
-import { errorHandler } from './middleware/errorHandler';
 import { requestLogger } from './middleware/requestLogger';
+import { errorHandler } from './middleware/errorHandler';
 import { AppError } from './types/errors';
 
 // Load environment variables
@@ -13,7 +14,7 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
 }
 
-const app: Express = express();
+const app = express();
 
 // Configure CORS to accept requests from your frontend
 const allowedOrigins = [
@@ -44,8 +45,8 @@ app.use('/api/db', dbRoutes);
 app.use('/api/products', productRoutes);
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+app.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
 // Only validate email variables if we're using email features
@@ -87,8 +88,8 @@ if (process.env.USE_EMAIL === 'true') {
 }
 
 // 404 handler
-app.use((req: Request, res: Response, next: NextFunction) => {
-  next(new AppError(`Cannot ${req.method} ${req.originalUrl}`, 404));
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  next(new AppError('Route not found', 404));
 });
 
 // Error handling

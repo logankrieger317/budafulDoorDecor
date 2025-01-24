@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { MiddlewareFunction } from './types';
+import { RequestHandler } from './types';
 
-export const requestLogger: MiddlewareFunction = (
+export const requestLogger: RequestHandler = (
   req: Request,
   res: Response,
   next: NextFunction
@@ -15,5 +15,6 @@ export const requestLogger: MiddlewareFunction = (
     );
   });
 
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 };

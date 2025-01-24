@@ -1,7 +1,8 @@
 import express from 'express';
+import { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import uploadRoutes from './routes/upload.routes';
-import productRoutes from './routes/product.routes';
+import { productRoutes } from './routes/productRoutes';
+import { uploadRoutes } from './routes/upload.routes';
 
 const app = express();
 
@@ -11,13 +12,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/upload', uploadRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/upload', uploadRoutes);
 
-// Basic error handling
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+// Error handling middleware
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(500).send('Something broke!');
 });
 
 export default app;

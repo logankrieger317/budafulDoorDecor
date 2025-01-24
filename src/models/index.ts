@@ -1,10 +1,10 @@
 import { Sequelize } from 'sequelize';
-import { DB } from '../src/types/models';
+import { DB } from '../types/models';
 import { initProduct } from './product';
 import { initUser } from './users';
 
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const config = require('../config/config.json')[env];
 
 let sequelize: Sequelize;
 if (config.use_env_variable) {

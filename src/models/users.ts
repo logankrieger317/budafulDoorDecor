@@ -1,21 +1,14 @@
-import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
-
-export interface UserAttributes {
-  id: string;
-  name: string;
-  role: 'admin' | 'manager' | 'user';
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'role' | 'createdAt' | 'updatedAt'> {}
+import { Model, DataTypes, Sequelize } from 'sequelize';
+import { UserAttributes, UserCreationAttributes } from '../types/models';
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!: string;
+  public email!: string;
   public name!: string;
-  public role!: 'admin' | 'manager' | 'user';
+  public role!: 'admin' | 'user';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  public readonly deletedAt!: Date | null;
 }
 
 export function initUser(sequelize: Sequelize): typeof User {
@@ -24,31 +17,32 @@ export function initUser(sequelize: Sequelize): typeof User {
       id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
-        allowNull: false,
         primaryKey: true,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
       },
       name: {
         type: DataTypes.STRING,
         allowNull: false,
       },
       role: {
-        type: DataTypes.ENUM('admin', 'manager', 'user'),
+        type: DataTypes.ENUM('admin', 'user'),
         allowNull: false,
         defaultValue: 'user',
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
       },
     },
     {
       sequelize,
       modelName: 'User',
-      tableName: 'Users',
+      tableName: 'users',
+      paranoid: true,
+      timestamps: true,
     }
   );
 
