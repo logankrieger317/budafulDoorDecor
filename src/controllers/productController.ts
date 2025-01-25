@@ -5,12 +5,21 @@ import { AppError } from '../types/errors';
 import { getDatabase } from '../models';
 
 const parseDecimalFields = (product: any) => {
-  return {
-    ...product.get({ plain: true }),
-    price: parseFloat(product.price),
-    width: product.width ? parseFloat(product.width) : null,
-    length: product.length ? parseFloat(product.length) : null,
-  };
+  try {
+    // Get the plain object, whether it's a Sequelize model or already a plain object
+    const plainProduct = product.get ? product.get({ plain: true }) : product;
+    
+    return {
+      ...plainProduct,
+      price: plainProduct.price ? parseFloat(plainProduct.price) : 0,
+      width: plainProduct.width ? parseFloat(plainProduct.width) : null,
+      length: plainProduct.length ? parseFloat(plainProduct.length) : null,
+    };
+  } catch (error) {
+    console.error('[ERROR] Failed to parse product:', error);
+    // Return the original product if parsing fails
+    return product;
+  }
 };
 
 class ProductController {
@@ -21,10 +30,18 @@ class ProductController {
       const products = await db.Product.findAll();
       res.json(products.map(parseDecimalFields));
     } catch (error) {
+      console.error('[ERROR] Failed to get products:', error);
       if (error instanceof Error) {
-        throw new AppError(error.message, 500);
+        res.status(500).json({
+          status: 'error',
+          message: error.message
+        });
+      } else {
+        res.status(500).json({
+          status: 'error',
+          message: 'An unknown error occurred'
+        });
       }
-      throw new AppError('An unknown error occurred', 500);
     }
   }
 
