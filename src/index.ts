@@ -72,6 +72,15 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
+// Health check route
+app.get('/health', (_req: Request, res: Response) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
+  });
+});
+
 // Debug route to list all registered routes
 app.get('/api/debug/routes', (_req: Request, res: Response) => {
   const routes: string[] = [];
@@ -98,8 +107,14 @@ app.get('/api/debug/routes', (_req: Request, res: Response) => {
 
 // Routes
 console.log('[DEBUG] Setting up routes...');
+
+// Print the contents of productRoutes and orderRoutes for debugging
+console.log('[DEBUG] Product Routes:', productRoutes);
+console.log('[DEBUG] Order Routes:', orderRoutes);
+
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+
 console.log('[DEBUG] Routes setup complete');
 
 // List all registered routes for debugging
