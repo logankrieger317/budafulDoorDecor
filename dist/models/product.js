@@ -54,7 +54,7 @@ function initProduct(sequelize) {
     }, {
         sequelize,
         modelName: 'Product',
-        tableName: 'products',
+        tableName: 'Products',
         paranoid: true,
         timestamps: true,
     });

@@ -1,15 +1,25 @@
 import { Request, Response } from 'express';
 import { ValidationError } from 'sequelize';
-import db from '../models';
 import { ProductAttributes, ProductCreationAttributes } from '../types/models';
 import { AppError } from '../types/errors';
+import { getDatabase } from '../models';
+
+const parseDecimalFields = (product: any) => {
+  return {
+    ...product.get({ plain: true }),
+    price: parseFloat(product.price),
+    width: product.width ? parseFloat(product.width) : null,
+    length: product.length ? parseFloat(product.length) : null,
+  };
+};
 
 class ProductController {
   // Get all products
   async getAllProducts(req: Request, res: Response): Promise<void> {
     try {
+      const db = getDatabase();
       const products = await db.Product.findAll();
-      res.json(products);
+      res.json(products.map(parseDecimalFields));
     } catch (error) {
       if (error instanceof Error) {
         throw new AppError(error.message, 500);
@@ -25,6 +35,8 @@ class ProductController {
       if (!sku) {
         throw new AppError('Product SKU is required', 400);
       }
+      
+      const db = getDatabase();
       const product = await db.Product.findOne({
         where: { sku }
       });
@@ -33,7 +45,7 @@ class ProductController {
         throw new AppError('Product not found', 404);
       }
 
-      res.json(product);
+      res.json(parseDecimalFields(product));
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -52,13 +64,17 @@ class ProductController {
       if (!category) {
         throw new AppError('Category is required', 400);
       }
-
+      
+      const db = getDatabase();
       const products = await db.Product.findAll({
         where: { category }
       });
 
-      res.json(products);
+      res.json(products.map(parseDecimalFields));
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       if (error instanceof Error) {
         throw new AppError(error.message, 500);
       }
@@ -70,8 +86,9 @@ class ProductController {
   async createProduct(req: Request, res: Response): Promise<void> {
     try {
       const productData: ProductCreationAttributes = req.body;
+      const db = getDatabase();
       const product = await db.Product.create(productData);
-      res.status(201).json(product);
+      res.status(201).json(parseDecimalFields(product));
     } catch (error) {
       if (error instanceof ValidationError) {
         throw new AppError(error.message, 400);
@@ -88,12 +105,12 @@ class ProductController {
     try {
       const { sku } = req.params;
       const updates: Partial<ProductAttributes> = req.body;
-
-      const [updated] = await db.Product.update(updates, {
+      const db = getDatabase();
+      const [updatedCount] = await db.Product.update(updates, {
         where: { sku }
       });
 
-      if (!updated) {
+      if (updatedCount === 0) {
         throw new AppError('Product not found', 404);
       }
 
@@ -101,10 +118,13 @@ class ProductController {
         where: { sku }
       });
 
-      res.json(updatedProduct);
+      res.json(parseDecimalFields(updatedProduct));
     } catch (error) {
       if (error instanceof ValidationError) {
         throw new AppError(error.message, 400);
+      }
+      if (error instanceof AppError) {
+        throw error;
       }
       if (error instanceof Error) {
         throw new AppError(error.message, 500);
@@ -117,16 +137,20 @@ class ProductController {
   async deleteProduct(req: Request, res: Response): Promise<void> {
     try {
       const { sku } = req.params;
-      const deleted = await db.Product.destroy({
+      const db = getDatabase();
+      const deletedCount = await db.Product.destroy({
         where: { sku }
       });
 
-      if (!deleted) {
+      if (deletedCount === 0) {
         throw new AppError('Product not found', 404);
       }
 
-      res.status(204).send();
+      res.status(204).end();
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       if (error instanceof Error) {
         throw new AppError(error.message, 500);
       }
@@ -148,6 +172,7 @@ class ProductController {
         throw new AppError('Quantity must be a number', 400);
       }
 
+      const db = getDatabase();
       const [updated] = await db.Product.update(
         { quantity },
         { where: { sku } }
@@ -161,7 +186,7 @@ class ProductController {
         where: { sku }
       });
 
-      res.json(updatedProduct);
+      res.json(parseDecimalFields(updatedProduct));
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

@@ -28,11 +28,7 @@
     }
   },
   "production": {
-    "username": "postgres",
-    "password": "hEneIKYwKhxSNumfkugLldHHPTIKDRnA",
-    "database": "railway",
-    "host": "monorail.proxy.rlwy.net",
-    "port": 34950,
+    "use_env_variable": "DATABASE_URL",
     "dialect": "postgres",
     "dialectOptions": {
       "ssl": {

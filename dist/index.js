@@ -20,26 +20,39 @@ const app = (0, express_1.default)();
 const port = process.env.PORT || 3001;
 // Configure CORS
 const allowedOrigins = [
-    'http://localhost:5173', // Local development
+    'http://localhost:5173', // Vite development
     'http://localhost:3000', // Alternative local development
+    'http://127.0.0.1:5173', // Vite development alternative
+    'http://127.0.0.1:3000', // Alternative local development
     'https://budafuldoordecor.com',
     'https://www.budafuldoordecor.com',
     'https://budafuldoordecor.vercel.app', // Production frontend
-    'https://www.budafuldoordecor.vercel.app' // Production frontend with www
+    'https://www.budafuldoordecor.vercel.app', // Production frontend with www
+    'https://budafuldoordecor-production.up.railway.app' // Railway backend
 ];
-app.use((0, cors_1.default)({
+const corsOptions = {
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin)
+        if (!origin) {
             return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
         }
-        return callback(null, true);
+        if (process.env.NODE_ENV !== 'production') {
+            // In development, log the origin for debugging
+            console.log('Request origin:', origin);
+            // Allow all origins in development
+            return callback(null, true);
+        }
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        console.log('Blocked origin:', origin);
+        callback(new Error('Not allowed by CORS'));
     },
-    credentials: true
-}));
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use((0, cors_1.default)(corsOptions));
 // Middleware
 app.use(express_1.default.json());
 app.use(requestLogger_1.requestLogger);
@@ -47,23 +60,25 @@ app.use(requestLogger_1.requestLogger);
 app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
-// Routes
-app.use('/api/products', productRoutes_1.productRoutes);
-app.use('/api/upload', upload_routes_1.uploadRoutes);
-// Error handling
-app.use(errorHandler_1.errorHandler);
-// 404 handler
-app.use((_req, res, next) => {
-    next(new errors_1.AppError('Route not found', 404));
-});
 // Initialize database and start server
 const startServer = async () => {
     try {
-        const db = await (0, models_1.initializeDatabase)();
+        // Initialize database first
+        await (0, models_1.initializeDatabase)();
         console.log('Database initialized successfully');
+        // Only set up routes after database is initialized
+        app.use('/api/products', productRoutes_1.productRoutes);
+        app.use('/api/upload', upload_routes_1.uploadRoutes);
+        // Error handling
+        app.use(errorHandler_1.errorHandler);
+        // 404 handler
+        app.use((_req, res, next) => {
+            next(new errors_1.AppError('Route not found', 404));
+        });
+        // Start server
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);
-            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log('Environment:', process.env.NODE_ENV);
         });
     }
     catch (error) {
@@ -71,4 +86,8 @@ const startServer = async () => {
         process.exit(1);
     }
 };
-startServer();
+// Start the server
+startServer().catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+});

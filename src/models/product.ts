@@ -67,7 +67,7 @@ export function initProduct(sequelize: Sequelize): typeof Product {
     {
       sequelize,
       modelName: 'Product',
-      tableName: 'products',
+      tableName: 'Products',
       paranoid: true,
       timestamps: true,
     }

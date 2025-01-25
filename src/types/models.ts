@@ -2,6 +2,32 @@ import { Sequelize } from 'sequelize';
 import { Product } from '../models/product';
 import { User } from '../models/users';
 
+export interface CartItem {
+  sku: string;
+  name: string;
+  quantity: number;
+  price: number;
+  customOptions?: {
+    width?: number;
+    length?: number;
+    isWired?: boolean;
+  };
+}
+
+export interface CustomerInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  notes?: string;
+}
+
 export interface ProductAttributes {
   sku: string;
   name: string;
