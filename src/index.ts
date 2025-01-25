@@ -30,7 +30,8 @@ const allowedOrigins = [
   'https://www.budafuldoordecor.vercel.app', // Production frontend with www
   'https://budafuldoordecor-production.up.railway.app', // Railway backend
   'https://budafuldoordecor-backend-production.up.railway.app', // Railway backend
-  'https://budafuldoordecor-production-bb09.up.railway.app' // Railway backend
+  'https://budafuldoordecor-production-bb09.up.railway.app', // Railway backend
+  'http://localhost:4173'  // Vite preview mode
 ];
 
 const corsOptions = {
@@ -40,9 +41,10 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Log all origins in both development and production for debugging
+    console.log('Request origin:', origin);
+
     if (process.env.NODE_ENV !== 'production') {
-      // In development, log the origin for debugging
-      console.log('Request origin:', origin);
       // Allow all origins in development
       return callback(null, true);
     }
@@ -55,8 +57,8 @@ const corsOptions = {
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 };
 
 app.use(cors(corsOptions));
