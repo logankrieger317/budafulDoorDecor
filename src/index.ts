@@ -2,7 +2,7 @@ import express from 'express';
 import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import { productRoutes } from './routes/productRoutes';
+import productRoutes from './routes/product.routes';
 import { orderRoutes } from './routes/orders.routes';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';

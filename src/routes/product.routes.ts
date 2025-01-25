@@ -9,9 +9,6 @@ router.get('/', productController.getAllProducts.bind(productController));
 // Get product by SKU
 router.get('/:sku', productController.getProductBySku.bind(productController));
 
-// Get products by category
-router.get('/category/:category', productController.getProductsByCategory.bind(productController));
-
 // Create new product
 router.post('/', productController.createProduct.bind(productController));
 
