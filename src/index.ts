@@ -28,7 +28,8 @@ const allowedOrigins = [
   'https://budafuldoordecor.vercel.app', // Production frontend
   'https://www.budafuldoordecor.vercel.app', // Production frontend with www
   'https://budafuldoordecor-production.up.railway.app', // Railway backend
-  'https://budafuldoordecor-backend-production.up.railway.app' // Railway backend
+  'https://budafuldoordecor-backend-production.up.railway.app', // Railway backend
+  'https://budafuldoordecor-production-bb09.up.railway.app' // Railway backend
 ];
 
 const corsOptions = {
