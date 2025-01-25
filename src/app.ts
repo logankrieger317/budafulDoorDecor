@@ -13,6 +13,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'https://budafuldoordecor-production.up.railway.app',
+    'https://budafuldoordecor-backend-production.up.railway.app'
   ],
   credentials: true,
 }));
