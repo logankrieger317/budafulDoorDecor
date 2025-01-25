@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize';
 import { Product } from '../models/product';
-import { User } from '../models/users';
+import { Order } from '../models/order.model';
 
 export interface CartItem {
   sku: string;
@@ -14,29 +14,20 @@ export interface CartItem {
   };
 }
 
-export interface CustomerInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  };
-  notes?: string;
+export interface Cart {
+  items: CartItem[];
+  total: number;
 }
 
 export interface ProductAttributes {
   sku: string;
   name: string;
-  description?: string;
+  description: string;
   price: number;
-  imageUrl?: string;
+  imageUrl: string;
   category: string;
-  width?: number;
-  length?: number;
+  width: number;
+  length: number;
   isWired: boolean;
   quantity: number;
   createdAt?: Date;
@@ -46,21 +37,9 @@ export interface ProductAttributes {
 
 export interface ProductCreationAttributes extends Omit<ProductAttributes, 'createdAt' | 'updatedAt' | 'deletedAt'> {}
 
-export interface UserAttributes {
-  id: string;
-  email: string;
-  name: string;
-  role: 'admin' | 'user';
-  createdAt?: Date;
-  updatedAt?: Date;
-  deletedAt?: Date | null;
-}
-
-export interface UserCreationAttributes extends Omit<UserAttributes, 'id' | 'role' | 'createdAt' | 'updatedAt' | 'deletedAt'> {}
-
 export interface DB {
   sequelize: Sequelize;
   Sequelize: typeof Sequelize;
   Product: typeof Product;
-  User: typeof User;
+  Order: typeof Order;
 }

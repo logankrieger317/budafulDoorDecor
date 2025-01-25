@@ -1,5 +1,4 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
-import { db } from '../config/database';
 
 interface OrderAttributes {
   id: string;
@@ -55,82 +54,87 @@ class Order extends Model<OrderAttributes, OrderCreationAttributes> implements O
     };
   }[];
   public total!: number;
-  public notes!: string;
+  public notes?: string;
   public status!: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
 
-Order.init(
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    orderNumber: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    customerFirstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    customerLastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    customerEmail: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isEmail: true,
+const initOrder = (sequelize: Sequelize): typeof Order => {
+  Order.init(
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
+      orderNumber: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      customerFirstName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      customerLastName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      customerEmail: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        validate: {
+          isEmail: true,
+        },
+      },
+      customerPhone: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      shippingStreet: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      shippingCity: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      shippingState: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      shippingZipCode: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      orderItems: {
+        type: DataTypes.JSONB,
+        allowNull: false,
+      },
+      total: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      notes: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      status: {
+        type: DataTypes.ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled'),
+        defaultValue: 'pending',
       },
     },
-    customerPhone: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    shippingStreet: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    shippingCity: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    shippingState: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    shippingZipCode: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    orderItems: {
-      type: DataTypes.JSONB,
-      allowNull: false,
-    },
-    total: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    notes: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-    status: {
-      type: DataTypes.ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled'),
-      allowNull: false,
-      defaultValue: 'pending',
-    },
-  },
-  {
-    sequelize: db,
-    tableName: 'orders',
-    modelName: 'Order',
-  }
-);
+    {
+      sequelize,
+      modelName: 'Order',
+      tableName: 'orders',
+      timestamps: true,
+      paranoid: true,
+    }
+  );
 
-export default Order;
+  return Order;
+};
+
+export { Order, initOrder };

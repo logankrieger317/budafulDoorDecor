@@ -1,5 +1,16 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
-import { UserAttributes, UserCreationAttributes } from '../types/models';
+
+interface UserAttributes {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'user';
+  createdAt?: Date;
+  updatedAt?: Date;
+  deletedAt?: Date | null;
+}
+
+interface UserCreationAttributes extends Omit<UserAttributes, 'id' | 'role' | 'createdAt' | 'updatedAt' | 'deletedAt'> {}
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public id!: string;

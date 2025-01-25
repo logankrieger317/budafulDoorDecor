@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { productRoutes } from './routes/productRoutes';
-import { uploadRoutes } from './routes/upload.routes';
+import { orderRoutes } from './routes/orders.routes';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { AppError } from './types/errors';
@@ -27,7 +27,8 @@ const allowedOrigins = [
   'https://www.budafuldoordecor.com',
   'https://budafuldoordecor.vercel.app', // Production frontend
   'https://www.budafuldoordecor.vercel.app', // Production frontend with www
-  'https://budafuldoordecor-production.up.railway.app' // Railway backend
+  'https://budafuldoordecor-production.up.railway.app', // Railway backend
+  'https://budafuldoordecor-backend-production.up.railway.app' // Railway backend
 ];
 
 const corsOptions = {
@@ -58,38 +59,71 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Middleware
+// Middleware for parsing request body
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
-// Health check route
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+// Debug middleware to log all requests
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  console.log(`[DEBUG] ${req.method} ${req.path}`);
+  console.log('[DEBUG] Request Body:', req.body);
+  next();
 });
 
-// Initialize database and start server
+// Routes
+console.log('[DEBUG] Setting up routes...');
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+console.log('[DEBUG] Routes setup complete');
+
+// List all registered routes
+app._router.stack.forEach((middleware: any) => {
+  if (middleware.route) { // routes registered directly on the app
+    console.log(`[DEBUG] Route: ${middleware.route.path}`);
+  } else if (middleware.name === 'router') { // router middleware 
+    middleware.handle.stack.forEach((handler: any) => {
+      if (handler.route) {
+        const path = handler.route.path;
+        const methods = Object.keys(handler.route.methods);
+        console.log(`[DEBUG] Route: ${methods.join(',')} ${path}`);
+      }
+    });
+  }
+});
+
+// Error handling middleware
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('[DEBUG] Error:', err);
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json({
+      status: 'error',
+      message: err.message,
+    });
+  }
+
+  return res.status(500).json({
+    status: 'error',
+    message: 'Internal server error',
+  });
+});
+
+// Handle 404 errors for unmatched routes
+app.use((req: Request, res: Response) => {
+  console.error(`[DEBUG] Route not found: ${req.method} ${req.path}`);
+  throw new AppError('Route not found', 404);
+});
+
 const startServer = async () => {
   try {
-    // Initialize database first
-    await initializeDatabase();
+    // Initialize database
+    const db = await initializeDatabase();
     console.log('Database initialized successfully');
-
-    // Only set up routes after database is initialized
-    app.use('/api/products', productRoutes);
-    app.use('/api/upload', uploadRoutes);
-
-    // Error handling
-    app.use(errorHandler);
-
-    // 404 handler
-    app.use((_req: Request, res: Response, next: NextFunction) => {
-      next(new AppError('Route not found', 404));
-    });
 
     // Start server
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
-      console.log('Environment:', process.env.NODE_ENV);
+      console.log(`Environment: ${process.env.NODE_ENV}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

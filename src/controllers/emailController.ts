@@ -27,27 +27,22 @@ export class EmailController {
     }
   }
 
-  async sendOrderNotificationEmail(req: Request, res: Response): Promise<void> {
+  async sendOrderStatusUpdateEmail(req: Request, res: Response): Promise<void> {
     try {
-      const { customerInfo, items, total, orderNumber } = req.body;
+      const { email, orderNumber, status } = req.body;
 
-      if (!customerInfo || !items || !total || !orderNumber) {
-        throw new AppError('Missing required order information', 400);
+      if (!email || !orderNumber || !status) {
+        throw new AppError('Missing required information', 400);
       }
 
-      await emailService.sendOrderNotificationEmail({
-        customerInfo,
-        items,
-        total,
-        orderNumber,
-      });
+      await emailService.sendOrderStatusUpdateEmail(email, orderNumber, status);
 
-      res.status(200).json({ message: 'Order notification email sent successfully' });
+      res.status(200).json({ message: 'Order status update email sent successfully' });
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
       }
-      throw new AppError('Failed to send order notification email', 500);
+      throw new AppError('Failed to send order status update email', 500);
     }
   }
 }

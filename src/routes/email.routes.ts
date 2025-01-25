@@ -10,8 +10,8 @@ router.post(
 );
 
 router.post(
-  '/order-notification',
-  asyncHandler(emailController.sendOrderNotificationEmail.bind(emailController))
+  '/order-status-update',
+  asyncHandler(emailController.sendOrderStatusUpdateEmail.bind(emailController))
 );
 
 export const emailRoutes = router;
