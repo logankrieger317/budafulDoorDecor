@@ -66,120 +66,106 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
-// Debug middleware to log all requests
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  console.log(`[DEBUG] ${req.method} ${req.path}`);
-  console.log('[DEBUG] Request Body:', req.body);
-  next();
-});
-
-// Health check route
-app.get('/health', (_req: Request, res: Response) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV
-  });
-});
-
-// Debug route to list all registered routes
-app.get('/api/debug/routes', (_req: Request, res: Response) => {
-  const routes: string[] = [];
-  
-  app._router.stack.forEach((middleware: any) => {
-    if (middleware.route) {
-      routes.push(`${Object.keys(middleware.route.methods).join(',')} ${middleware.route.path}`);
-    } else if (middleware.name === 'router') {
-      middleware.handle.stack.forEach((handler: any) => {
-        if (handler.route) {
-          const path = handler.route.path;
-          const methods = Object.keys(handler.route.methods);
-          routes.push(`${methods.join(',')} ${path}`);
-        }
-      });
-    }
-  });
-  
-  res.json({
-    routes,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Routes
-console.log('[DEBUG] Setting up routes...');
-
-// Product routes
-app.use('/api/products', productRoutes);
-
-// Order routes defined directly
-app.post('/api/orders', (req, res, next) => {
-  console.log('[DEBUG] POST /api/orders hit with body:', req.body);
-  next();
-}, asyncHandler(orderController.createOrder.bind(orderController)));
-
-app.get('/api/orders/number/:orderNumber', (req, res, next) => {
-  console.log('[DEBUG] GET /api/orders/number/:orderNumber hit with params:', req.params);
-  next();
-}, asyncHandler(orderController.getOrderByNumber.bind(orderController)));
-
-app.get('/api/orders/:id', (req, res, next) => {
-  console.log('[DEBUG] GET /api/orders/:id hit with params:', req.params);
-  next();
-}, asyncHandler(orderController.getOrder.bind(orderController)));
-
-app.patch('/api/orders/:id/status', (req, res, next) => {
-  console.log('[DEBUG] PATCH /api/orders/:id/status hit with params:', req.params, 'body:', req.body);
-  next();
-}, asyncHandler(orderController.updateOrderStatus.bind(orderController)));
-
-console.log('[DEBUG] Routes setup complete');
-
-// List all registered routes for debugging
-app._router.stack.forEach((middleware: any) => {
-  if (middleware.route) {
-    console.log(`[DEBUG] Route: ${middleware.route.path}`);
-  } else if (middleware.name === 'router') {
-    middleware.handle.stack.forEach((handler: any) => {
-      if (handler.route) {
-        const path = handler.route.path;
-        const methods = Object.keys(handler.route.methods);
-        console.log(`[DEBUG] Route: ${methods.join(',')} ${path}`);
-      }
-    });
-  }
-});
-
-// Error handling middleware
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error('[DEBUG] Error:', err);
-  if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      status: 'error',
-      message: err.message,
-    });
-  }
-
-  return res.status(500).json({
-    status: 'error',
-    message: 'Internal server error',
-  });
-});
-
-// Handle 404 errors for unmatched routes - THIS MUST BE LAST
-app.use((req: Request, res: Response) => {
-  console.error(`[DEBUG] Route not found: ${req.method} ${req.path}`);
-  res.status(404).json({
-    status: 'error',
-    message: `Route not found: ${req.method} ${req.path}`
-  });
-});
-
 const startServer = async () => {
   try {
-    // Initialize database
+    // Initialize database first
     const db = await initializeDatabase();
     console.log('Database initialized successfully');
+
+    // Debug middleware to log all requests
+    app.use((req: Request, _res: Response, next: NextFunction) => {
+      console.log(`[DEBUG] ${req.method} ${req.path}`);
+      console.log('[DEBUG] Request Body:', req.body);
+      next();
+    });
+
+    // Health check route
+    app.get('/health', (_req: Request, res: Response) => {
+      res.json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV,
+        dbStatus: db ? 'connected' : 'disconnected'
+      });
+    });
+
+    // Debug route to list all registered routes
+    app.get('/api/debug/routes', (_req: Request, res: Response) => {
+      const routes: string[] = [];
+      
+      app._router.stack.forEach((middleware: any) => {
+        if (middleware.route) {
+          routes.push(`${Object.keys(middleware.route.methods).join(',')} ${middleware.route.path}`);
+        } else if (middleware.name === 'router') {
+          middleware.handle.stack.forEach((handler: any) => {
+            if (handler.route) {
+              const path = handler.route.path;
+              const methods = Object.keys(handler.route.methods);
+              routes.push(`${methods.join(',')} ${path}`);
+            }
+          });
+        }
+      });
+      
+      res.json({
+        routes,
+        timestamp: new Date().toISOString()
+      });
+    });
+
+    // Routes
+    console.log('[DEBUG] Setting up routes...');
+
+    // Product routes
+    app.use('/api/products', productRoutes);
+
+    // Order routes defined directly
+    app.post('/api/orders', (req, res, next) => {
+      console.log('[DEBUG] POST /api/orders hit with body:', req.body);
+      next();
+    }, asyncHandler(orderController.createOrder.bind(orderController)));
+
+    app.get('/api/orders/number/:orderNumber', (req, res, next) => {
+      console.log('[DEBUG] GET /api/orders/number/:orderNumber hit with params:', req.params);
+      next();
+    }, asyncHandler(orderController.getOrderByNumber.bind(orderController)));
+
+    app.get('/api/orders/:id', (req, res, next) => {
+      console.log('[DEBUG] GET /api/orders/:id hit with params:', req.params);
+      next();
+    }, asyncHandler(orderController.getOrder.bind(orderController)));
+
+    app.patch('/api/orders/:id/status', (req, res, next) => {
+      console.log('[DEBUG] PATCH /api/orders/:id/status hit with params:', req.params, 'body:', req.body);
+      next();
+    }, asyncHandler(orderController.updateOrderStatus.bind(orderController)));
+
+    console.log('[DEBUG] Routes setup complete');
+
+    // Error handling middleware
+    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+      console.error('[DEBUG] Error:', err);
+      if (err instanceof AppError) {
+        return res.status(err.statusCode).json({
+          status: 'error',
+          message: err.message,
+        });
+      }
+
+      return res.status(500).json({
+        status: 'error',
+        message: 'Internal server error',
+      });
+    });
+
+    // Handle 404 errors for unmatched routes
+    app.use((req: Request, res: Response) => {
+      console.error(`[DEBUG] Route not found: ${req.method} ${req.path}`);
+      res.status(404).json({
+        status: 'error',
+        message: `Route not found: ${req.method} ${req.path}`
+      });
+    });
 
     // Start server
     app.listen(port, () => {
