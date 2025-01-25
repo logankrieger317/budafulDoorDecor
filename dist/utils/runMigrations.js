@@ -5,13 +5,19 @@ const umzug_1 = require("umzug");
 const database_1 = require("../config/database");
 const umzug = new umzug_1.Umzug({
     migrations: {
-        glob: ['../migrations/*.ts', { cwd: __dirname }],
+        glob: ['../../migrations/*.js', { cwd: __dirname }],
         resolve: ({ name, path, context }) => {
             const migration = require(path);
             return {
                 name,
-                up: async () => migration.up(context, database_1.db.getQueryInterface()),
-                down: async () => migration.down(context, database_1.db.getQueryInterface()),
+                up: async () => {
+                    const fn = migration.up || migration.default?.up;
+                    return fn(database_1.db.getQueryInterface(), database_1.db.Sequelize);
+                },
+                down: async () => {
+                    const fn = migration.down || migration.default?.down;
+                    return fn(database_1.db.getQueryInterface(), database_1.db.Sequelize);
+                },
             };
         },
     },

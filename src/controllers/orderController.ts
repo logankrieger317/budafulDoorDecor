@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { getDatabase } from '../models';
-import { Order } from '../models/order.model';
+import { Order, OrderCreationAttributes } from '../models/order.model';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../types/errors';
 import { emailService } from '../services/emailService';
@@ -12,15 +12,29 @@ class OrderController {
 
     try {
       // Generate a unique order number
-      const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      const orderNumber = req.body.orderNumber || `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-      // Create the order
-      const order = await db.Order.create({
-        ...req.body,
-        id: uuidv4(),
+      // Transform the nested data structure to flat structure
+      const orderData: OrderCreationAttributes = {
         orderNumber,
-        status: 'pending'
-      });
+        customerFirstName: req.body.customerInfo.firstName,
+        customerLastName: req.body.customerInfo.lastName,
+        customerEmail: req.body.customerInfo.email,
+        customerPhone: req.body.customerInfo.phone,
+        shippingStreet: req.body.customerInfo.address.street,
+        shippingCity: req.body.customerInfo.address.city,
+        shippingState: req.body.customerInfo.address.state,
+        shippingZipCode: req.body.customerInfo.address.zipCode,
+        orderItems: req.body.items || [],
+        total: req.body.total,
+        notes: req.body.customerInfo.notes || '',
+        status: 'pending' as const
+      };
+
+      console.log('[DEBUG] Transformed order data:', orderData);
+
+      // Create the order with the transformed data
+      const order = await db.Order.create(orderData);
 
       // Send confirmation email
       try {

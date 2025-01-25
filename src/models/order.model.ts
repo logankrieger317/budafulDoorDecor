@@ -137,4 +137,4 @@ const initOrder = (sequelize: Sequelize): typeof Order => {
   return Order;
 };
 
-export { Order, initOrder };
+export { Order, initOrder, OrderAttributes, OrderCreationAttributes };

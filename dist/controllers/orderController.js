@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderController = void 0;
 const models_1 = require("../models");
-const uuid_1 = require("uuid");
 const errors_1 = require("../types/errors");
 const emailService_1 = require("../services/emailService");
 class OrderController {
@@ -11,14 +10,26 @@ class OrderController {
         const db = (0, models_1.getDatabase)();
         try {
             // Generate a unique order number
-            const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            // Create the order
-            const order = await db.Order.create({
-                ...req.body,
-                id: (0, uuid_1.v4)(),
+            const orderNumber = req.body.orderNumber || `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            // Transform the nested data structure to flat structure
+            const orderData = {
                 orderNumber,
+                customerFirstName: req.body.customerInfo.firstName,
+                customerLastName: req.body.customerInfo.lastName,
+                customerEmail: req.body.customerInfo.email,
+                customerPhone: req.body.customerInfo.phone,
+                shippingStreet: req.body.customerInfo.address.street,
+                shippingCity: req.body.customerInfo.address.city,
+                shippingState: req.body.customerInfo.address.state,
+                shippingZipCode: req.body.customerInfo.address.zipCode,
+                orderItems: req.body.items || [],
+                total: req.body.total,
+                notes: req.body.customerInfo.notes || '',
                 status: 'pending'
-            });
+            };
+            console.log('[DEBUG] Transformed order data:', orderData);
+            // Create the order with the transformed data
+            const order = await db.Order.create(orderData);
             // Send confirmation email
             try {
                 await emailService_1.emailService.sendOrderConfirmationEmail({

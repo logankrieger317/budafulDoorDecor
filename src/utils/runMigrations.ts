@@ -4,13 +4,19 @@ import path from 'path';
 
 const umzug = new Umzug({
   migrations: {
-    glob: ['../migrations/*.ts', { cwd: __dirname }],
+    glob: ['../../migrations/*.js', { cwd: __dirname }],
     resolve: ({ name, path, context }) => {
       const migration = require(path!);
       return {
         name,
-        up: async () => migration.up(context, db.getQueryInterface()),
-        down: async () => migration.down(context, db.getQueryInterface()),
+        up: async () => {
+          const fn = migration.up || migration.default?.up;
+          return fn(db.getQueryInterface(), db.Sequelize);
+        },
+        down: async () => {
+          const fn = migration.down || migration.default?.down;
+          return fn(db.getQueryInterface(), db.Sequelize);
+        },
       };
     },
   },
