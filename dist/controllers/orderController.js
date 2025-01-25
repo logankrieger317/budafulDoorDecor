@@ -1,61 +1,73 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.orderController = exports.OrderController = void 0;
-const order_model_1 = __importDefault(require("../models/order.model"));
-const errors_1 = require("../types/errors");
+exports.orderController = void 0;
+const models_1 = require("../models");
 const uuid_1 = require("uuid");
+const errors_1 = require("../types/errors");
+const emailService_1 = require("../services/emailService");
 class OrderController {
     async createOrder(req, res) {
+        console.log('[DEBUG] Creating order with body:', req.body);
+        const db = (0, models_1.getDatabase)();
         try {
-            const { customerInfo, items, total, orderNumber } = req.body;
-            if (!customerInfo || !items || !total) {
-                throw new errors_1.AppError('Missing required order information', 400);
-            }
-            const order = await order_model_1.default.create({
-                orderNumber: orderNumber || `ORD-${Date.now()}-${(0, uuid_1.v4)().slice(0, 8)}`,
-                customerFirstName: customerInfo.firstName,
-                customerLastName: customerInfo.lastName,
-                customerEmail: customerInfo.email,
-                customerPhone: customerInfo.phone,
-                shippingStreet: customerInfo.address.street,
-                shippingCity: customerInfo.address.city,
-                shippingState: customerInfo.address.state,
-                shippingZipCode: customerInfo.address.zipCode,
-                orderItems: items,
-                total: total,
-                notes: customerInfo.notes,
-                status: 'pending',
+            // Generate a unique order number
+            const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            // Create the order
+            const order = await db.Order.create({
+                ...req.body,
+                id: (0, uuid_1.v4)(),
+                orderNumber,
+                status: 'pending'
             });
+            // Send confirmation email
+            try {
+                await emailService_1.emailService.sendOrderConfirmationEmail({
+                    customerInfo: {
+                        firstName: order.customerFirstName,
+                        lastName: order.customerLastName,
+                        email: order.customerEmail,
+                        phone: order.customerPhone,
+                        address: {
+                            street: order.shippingStreet,
+                            city: order.shippingCity,
+                            state: order.shippingState,
+                            zipCode: order.shippingZipCode
+                        }
+                    },
+                    items: order.orderItems,
+                    total: order.total,
+                    orderNumber: order.orderNumber
+                });
+            }
+            catch (emailError) {
+                console.error('Failed to send order confirmation email:', emailError);
+                // Don't throw the error as the order was still created successfully
+            }
             res.status(201).json({
-                message: 'Order created successfully',
-                order: {
-                    id: order.id,
-                    orderNumber: order.orderNumber,
-                    status: order.status,
-                },
+                success: true,
+                data: order
             });
         }
         catch (error) {
             console.error('Error creating order:', error);
-            if (error instanceof errors_1.AppError) {
-                throw error;
-            }
             throw new errors_1.AppError('Failed to create order', 500);
         }
     }
     async getOrder(req, res) {
+        console.log('[DEBUG] Getting order with ID:', req.params.id);
+        const db = (0, models_1.getDatabase)();
         try {
-            const { id } = req.params;
-            const order = await order_model_1.default.findByPk(id);
+            const order = await db.Order.findByPk(req.params.id);
             if (!order) {
                 throw new errors_1.AppError('Order not found', 404);
             }
-            res.status(200).json(order);
+            res.json({
+                success: true,
+                data: order
+            });
         }
         catch (error) {
+            console.error('Error retrieving order:', error);
             if (error instanceof errors_1.AppError) {
                 throw error;
             }
@@ -63,15 +75,24 @@ class OrderController {
         }
     }
     async getOrderByNumber(req, res) {
+        console.log('[DEBUG] Getting order with number:', req.params.orderNumber);
+        const db = (0, models_1.getDatabase)();
         try {
-            const { orderNumber } = req.params;
-            const order = await order_model_1.default.findOne({ where: { orderNumber } });
+            const order = await db.Order.findOne({
+                where: {
+                    orderNumber: req.params.orderNumber
+                }
+            });
             if (!order) {
                 throw new errors_1.AppError('Order not found', 404);
             }
-            res.status(200).json(order);
+            res.json({
+                success: true,
+                data: order
+            });
         }
         catch (error) {
+            console.error('Error retrieving order:', error);
             if (error instanceof errors_1.AppError) {
                 throw error;
             }
@@ -79,24 +100,32 @@ class OrderController {
         }
     }
     async updateOrderStatus(req, res) {
+        console.log('[DEBUG] Updating order status. ID:', req.params.id, 'New status:', req.body.status);
+        const db = (0, models_1.getDatabase)();
         try {
-            const { id } = req.params;
-            const { status } = req.body;
-            const order = await order_model_1.default.findByPk(id);
+            const order = await db.Order.findByPk(req.params.id);
             if (!order) {
                 throw new errors_1.AppError('Order not found', 404);
             }
-            await order.update({ status });
-            res.status(200).json({
-                message: 'Order status updated successfully',
-                order: {
-                    id: order.id,
-                    orderNumber: order.orderNumber,
-                    status: order.status,
-                },
+            // Update the status
+            await order.update({
+                status: req.body.status
+            });
+            // Send status update email
+            try {
+                await emailService_1.emailService.sendOrderStatusUpdateEmail(order.customerEmail, order.orderNumber, order.status);
+            }
+            catch (emailError) {
+                console.error('Failed to send order status update email:', emailError);
+                // Don't throw the error as the order was still updated successfully
+            }
+            res.json({
+                success: true,
+                data: order
             });
         }
         catch (error) {
+            console.error('Error updating order status:', error);
             if (error instanceof errors_1.AppError) {
                 throw error;
             }
@@ -104,5 +133,4 @@ class OrderController {
         }
     }
 }
-exports.OrderController = OrderController;
 exports.orderController = new OrderController();

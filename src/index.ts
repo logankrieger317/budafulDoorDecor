@@ -3,12 +3,12 @@ import { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { productRoutes } from './routes/productRoutes';
+import { orderRoutes } from './routes/orders.routes';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { AppError } from './types/errors';
 import { initializeDatabase } from './models';
 import { asyncHandler } from './middleware/asyncHandler';
-import { orderController } from './controllers/orderController';
 
 // Load environment variables
 if (process.env.NODE_ENV !== 'production') {
@@ -119,26 +119,8 @@ const startServer = async () => {
     // Product routes
     app.use('/api/products', productRoutes);
 
-    // Order routes defined directly
-    app.post('/api/orders', (req, res, next) => {
-      console.log('[DEBUG] POST /api/orders hit with body:', req.body);
-      next();
-    }, asyncHandler(orderController.createOrder.bind(orderController)));
-
-    app.get('/api/orders/number/:orderNumber', (req, res, next) => {
-      console.log('[DEBUG] GET /api/orders/number/:orderNumber hit with params:', req.params);
-      next();
-    }, asyncHandler(orderController.getOrderByNumber.bind(orderController)));
-
-    app.get('/api/orders/:id', (req, res, next) => {
-      console.log('[DEBUG] GET /api/orders/:id hit with params:', req.params);
-      next();
-    }, asyncHandler(orderController.getOrder.bind(orderController)));
-
-    app.patch('/api/orders/:id/status', (req, res, next) => {
-      console.log('[DEBUG] PATCH /api/orders/:id/status hit with params:', req.params, 'body:', req.body);
-      next();
-    }, asyncHandler(orderController.updateOrderStatus.bind(orderController)));
+    // Order routes
+    app.use('/api/orders', orderRoutes);
 
     console.log('[DEBUG] Routes setup complete');
 

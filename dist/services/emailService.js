@@ -45,43 +45,27 @@ class EmailService {
         }
         catch (error) {
             console.error('Error sending order confirmation email:', error);
-            throw error;
+            throw new Error('Failed to send order confirmation email');
         }
     }
-    async sendOrderNotificationEmail({ customerInfo, items, total, orderNumber }) {
+    async sendOrderStatusUpdateEmail(email, orderNumber, status) {
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to: process.env.ADMIN_EMAIL,
-            subject: `New Order #${orderNumber}`,
+            to: email,
+            subject: `Order Status Update #${orderNumber}`,
             html: `
-        <h1>New Order Received</h1>
-        <p>Order Number: ${orderNumber}</p>
-        <h2>Customer Details:</h2>
-        <p>Name: ${customerInfo.firstName} ${customerInfo.lastName}</p>
-        <p>Email: ${customerInfo.email}</p>
-        <p>Phone: ${customerInfo.phone}</p>
-        <h3>Items:</h3>
-        <ul>
-          ${items.map(item => `
-            <li>${item.name} - Quantity: ${item.quantity} - $${item.price}</li>
-          `).join('')}
-        </ul>
-        <p>Total: $${total.toFixed(2)}</p>
-        <h3>Shipping Address:</h3>
-        <p>
-          ${customerInfo.address.street}<br>
-          ${customerInfo.address.city}, ${customerInfo.address.state} ${customerInfo.address.zipCode}
-        </p>
-        ${customerInfo.notes ? `<h3>Notes:</h3><p>${customerInfo.notes}</p>` : ''}
+        <h1>Order Status Update</h1>
+        <p>Your order #${orderNumber} has been updated to: ${status}</p>
+        <p>If you have any questions, please don't hesitate to contact us.</p>
       `,
         };
         try {
             await this.transporter.sendMail(mailOptions);
-            console.log('Order notification email sent successfully');
+            console.log('Order status update email sent successfully');
         }
         catch (error) {
-            console.error('Error sending order notification email:', error);
-            throw error;
+            console.error('Error sending order status update email:', error);
+            throw new Error('Failed to send order status update email');
         }
     }
 }

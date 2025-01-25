@@ -9,6 +9,6 @@ const emailController_1 = require("../controllers/emailController");
 const asyncHandler_1 = require("../middleware/asyncHandler");
 const router = express_1.default.Router();
 router.post('/order-confirmation', (0, asyncHandler_1.asyncHandler)(emailController_1.emailController.sendOrderConfirmationEmail.bind(emailController_1.emailController)));
-router.post('/order-notification', (0, asyncHandler_1.asyncHandler)(emailController_1.emailController.sendOrderNotificationEmail.bind(emailController_1.emailController)));
+router.post('/order-status-update', (0, asyncHandler_1.asyncHandler)(emailController_1.emailController.sendOrderStatusUpdateEmail.bind(emailController_1.emailController)));
 exports.emailRoutes = router;
 exports.default = router;
