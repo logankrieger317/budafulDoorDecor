@@ -13,7 +13,8 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "ts-node src/utils/runMigrations.ts",
-    "migrate:create": "ts-node src/utils/createMigration.ts"
+    "migrate:create": "ts-node src/utils/createMigration.ts",
+    "seed": "ts-node src/utils/runSeeders.ts"
   },
   "dependencies": {
     "axios": "^1.7.9",

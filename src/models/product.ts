@@ -6,10 +6,11 @@ export class Product extends Model<ProductAttributes, ProductCreationAttributes>
   public name!: string;
   public description!: string;
   public price!: number;
-  public imageUrl!: string;
-  public category!: string;
+  public imageUrl?: string;
   public width!: number;
   public length!: number;
+  public color!: string;
+  public brand!: string;
   public isWired!: boolean;
   public quantity!: number;
   public readonly createdAt!: Date;
@@ -41,16 +42,21 @@ export function initProduct(sequelize: Sequelize): typeof Product {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      category: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
       width: {
         type: DataTypes.DECIMAL(10, 2),
-        allowNull: true,
+        allowNull: false,
+        comment: 'Width in inches',
       },
       length: {
         type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+      },
+      color: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      brand: {
+        type: DataTypes.STRING,
         allowNull: true,
       },
       isWired: {

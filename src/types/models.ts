@@ -22,12 +22,13 @@ export interface Cart {
 export interface ProductAttributes {
   sku: string;
   name: string;
-  description: string;
+  description?: string;
   price: number;
-  imageUrl: string;
-  category: string;
+  imageUrl?: string;
   width: number;
   length: number;
+  color: string;
+  brand: string;
   isWired: boolean;
   quantity: number;
   createdAt?: Date;
@@ -35,7 +36,7 @@ export interface ProductAttributes {
   deletedAt?: Date | null;
 }
 
-export interface ProductCreationAttributes extends Omit<ProductAttributes, 'createdAt' | 'updatedAt' | 'deletedAt'> {}
+export interface ProductCreationAttributes extends Omit<ProductAttributes, 'createdAt' | 'updatedAt' | 'deletedAt' | 'description' | 'imageUrl'> {}
 
 export interface DB {
   sequelize: Sequelize;
