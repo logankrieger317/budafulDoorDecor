@@ -72,6 +72,30 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
   next();
 });
 
+// Debug route to list all registered routes
+app.get('/api/debug/routes', (_req: Request, res: Response) => {
+  const routes: string[] = [];
+  
+  app._router.stack.forEach((middleware: any) => {
+    if (middleware.route) {
+      routes.push(`${Object.keys(middleware.route.methods).join(',')} ${middleware.route.path}`);
+    } else if (middleware.name === 'router') {
+      middleware.handle.stack.forEach((handler: any) => {
+        if (handler.route) {
+          const path = handler.route.path;
+          const methods = Object.keys(handler.route.methods);
+          routes.push(`${methods.join(',')} ${path}`);
+        }
+      });
+    }
+  });
+  
+  res.json({
+    routes,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
 console.log('[DEBUG] Setting up routes...');
 app.use('/api/products', productRoutes);
