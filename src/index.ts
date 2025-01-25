@@ -102,11 +102,11 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 console.log('[DEBUG] Routes setup complete');
 
-// List all registered routes
+// List all registered routes for debugging
 app._router.stack.forEach((middleware: any) => {
-  if (middleware.route) { // routes registered directly on the app
+  if (middleware.route) {
     console.log(`[DEBUG] Route: ${middleware.route.path}`);
-  } else if (middleware.name === 'router') { // router middleware 
+  } else if (middleware.name === 'router') {
     middleware.handle.stack.forEach((handler: any) => {
       if (handler.route) {
         const path = handler.route.path;
@@ -133,10 +133,13 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-// Handle 404 errors for unmatched routes
+// Handle 404 errors for unmatched routes - THIS MUST BE LAST
 app.use((req: Request, res: Response) => {
   console.error(`[DEBUG] Route not found: ${req.method} ${req.path}`);
-  throw new AppError('Route not found', 404);
+  res.status(404).json({
+    status: 'error',
+    message: `Route not found: ${req.method} ${req.path}`
+  });
 });
 
 const startServer = async () => {
