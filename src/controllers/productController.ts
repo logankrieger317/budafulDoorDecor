@@ -57,31 +57,6 @@ class ProductController {
     }
   }
 
-  // Get products by category
-  async getProductsByCategory(req: Request, res: Response): Promise<void> {
-    try {
-      const { category } = req.params;
-      if (!category) {
-        throw new AppError('Category is required', 400);
-      }
-      
-      const db = getDatabase();
-      const products = await db.Product.findAll({
-        where: { category }
-      });
-
-      res.json(products.map(parseDecimalFields));
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw new AppError(error.message, 500);
-      }
-      throw new AppError('An unknown error occurred', 500);
-    }
-  }
-
   // Create new product
   async createProduct(req: Request, res: Response): Promise<void> {
     try {
