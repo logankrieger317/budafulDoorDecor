@@ -5,12 +5,21 @@ const sequelize_1 = require("sequelize");
 const errors_1 = require("../types/errors");
 const models_1 = require("../models");
 const parseDecimalFields = (product) => {
-    return {
-        ...product.get({ plain: true }),
-        price: parseFloat(product.price),
-        width: product.width ? parseFloat(product.width) : null,
-        length: product.length ? parseFloat(product.length) : null,
-    };
+    try {
+        // Get the plain object, whether it's a Sequelize model or already a plain object
+        const plainProduct = product.get ? product.get({ plain: true }) : product;
+        return {
+            ...plainProduct,
+            price: plainProduct.price ? parseFloat(plainProduct.price) : 0,
+            width: plainProduct.width ? parseFloat(plainProduct.width) : null,
+            length: plainProduct.length ? parseFloat(plainProduct.length) : null,
+        };
+    }
+    catch (error) {
+        console.error('[ERROR] Failed to parse product:', error);
+        // Return the original product if parsing fails
+        return product;
+    }
 };
 class ProductController {
     // Get all products
@@ -21,10 +30,19 @@ class ProductController {
             res.json(products.map(parseDecimalFields));
         }
         catch (error) {
+            console.error('[ERROR] Failed to get products:', error);
             if (error instanceof Error) {
-                throw new errors_1.AppError(error.message, 500);
+                res.status(500).json({
+                    status: 'error',
+                    message: error.message
+                });
             }
-            throw new errors_1.AppError('An unknown error occurred', 500);
+            else {
+                res.status(500).json({
+                    status: 'error',
+                    message: 'An unknown error occurred'
+                });
+            }
         }
     }
     // Get product by SKU
@@ -42,29 +60,6 @@ class ProductController {
                 throw new errors_1.AppError('Product not found', 404);
             }
             res.json(parseDecimalFields(product));
-        }
-        catch (error) {
-            if (error instanceof errors_1.AppError) {
-                throw error;
-            }
-            if (error instanceof Error) {
-                throw new errors_1.AppError(error.message, 500);
-            }
-            throw new errors_1.AppError('An unknown error occurred', 500);
-        }
-    }
-    // Get products by category
-    async getProductsByCategory(req, res) {
-        try {
-            const { category } = req.params;
-            if (!category) {
-                throw new errors_1.AppError('Category is required', 400);
-            }
-            const db = (0, models_1.getDatabase)();
-            const products = await db.Product.findAll({
-                where: { category }
-            });
-            res.json(products.map(parseDecimalFields));
         }
         catch (error) {
             if (error instanceof errors_1.AppError) {

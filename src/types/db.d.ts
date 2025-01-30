@@ -7,7 +7,11 @@ interface ProductAttributes {
   description?: string;
   price: number;
   imageUrl?: string;
-  category: string;
+  width: number;
+  length: number;
+  color: string;
+  brand: string;
+  isWired: boolean;
   inStock: boolean;
   createdAt?: Date;
   updatedAt?: Date;

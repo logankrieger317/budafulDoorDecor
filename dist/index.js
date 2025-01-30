@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
-const productRoutes_1 = require("./routes/productRoutes");
+const product_routes_1 = __importDefault(require("./routes/product.routes"));
 const orders_routes_1 = require("./routes/orders.routes");
 const requestLogger_1 = require("./middleware/requestLogger");
 const errors_1 = require("./types/errors");
@@ -103,7 +103,7 @@ const startServer = async () => {
         // Routes
         console.log('[DEBUG] Setting up routes...');
         // Product routes
-        app.use('/api/products', productRoutes_1.productRoutes);
+        app.use('/api/products', product_routes_1.default);
         // Order routes
         app.use('/api/orders', orders_routes_1.orderRoutes);
         console.log('[DEBUG] Routes setup complete');

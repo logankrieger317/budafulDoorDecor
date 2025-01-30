@@ -43,7 +43,7 @@ export class Database {
       let sequelize: Sequelize;
       
       if (process.env.DATABASE_URL) {
-        console.log('Using DATABASE_URL for connection');
+        console.log('Initializing database connection using Railway configuration');
         sequelize = new Sequelize(process.env.DATABASE_URL, {
           dialect: 'postgres',
           dialectOptions: {
@@ -52,13 +52,15 @@ export class Database {
               rejectUnauthorized: false
             }
           },
-          logging: false, // Disable logging for production
           pool: {
             max: 5,
             min: 0,
             acquire: 30000,
             idle: 10000
-          }
+          },
+          host: process.env.PGHOST || 'postgres.railway.internal',
+          port: parseInt(process.env.PGPORT || '5432'),
+          logging: console.log // Enable logging to debug connection issues
         });
       } else if (config.use_env_variable && process.env[config.use_env_variable]) {
         console.log(`Using ${config.use_env_variable} for connection`);

@@ -10,8 +10,6 @@ const router = express_1.default.Router();
 router.get('/', productController_1.productController.getAllProducts.bind(productController_1.productController));
 // Get product by SKU
 router.get('/:sku', productController_1.productController.getProductBySku.bind(productController_1.productController));
-// Get products by category
-router.get('/category/:category', productController_1.productController.getProductsByCategory.bind(productController_1.productController));
 // Create new product
 router.post('/', productController_1.productController.createProduct.bind(productController_1.productController));
 // Update product

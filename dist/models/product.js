@@ -29,16 +29,21 @@ function initProduct(sequelize) {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
         },
-        category: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: false,
-        },
         width: {
             type: sequelize_1.DataTypes.DECIMAL(10, 2),
-            allowNull: true,
+            allowNull: false,
+            comment: 'Width in inches',
         },
         length: {
             type: sequelize_1.DataTypes.DECIMAL(10, 2),
+            allowNull: false,
+        },
+        color: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
+        brand: {
+            type: sequelize_1.DataTypes.STRING,
             allowNull: true,
         },
         isWired: {
