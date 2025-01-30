@@ -4,7 +4,6 @@ import { initProduct } from './product';
 import { initOrder } from './order.model';
 
 const env = process.env.NODE_ENV || 'development';
-const config = require('../config/config.json')[env];
 
 // Create a singleton instance
 export class Database {
@@ -52,25 +51,10 @@ export class Database {
               rejectUnauthorized: false
             }
           },
-          pool: {
-            max: 5,
-            min: 0,
-            acquire: 30000,
-            idle: 10000
-          },
-          host: process.env.PGHOST || 'postgres.railway.internal',
-          port: parseInt(process.env.PGPORT || '5432'),
-          logging: console.log // Enable logging to debug connection issues
+          logging: console.log // Keep logging enabled for debugging
         });
-      } else if (config.use_env_variable && process.env[config.use_env_variable]) {
-        console.log(`Using ${config.use_env_variable} for connection`);
-        sequelize = new Sequelize(process.env[config.use_env_variable] as string, config);
       } else {
-        console.log('Using local config for connection');
-        sequelize = new Sequelize(config.database, config.username, config.password, {
-          ...config,
-          dialect: 'postgres'
-        });
+        throw new Error('DATABASE_URL environment variable is not set');
       }
 
       // Test the connection
